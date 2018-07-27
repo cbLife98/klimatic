@@ -16,6 +16,18 @@ class _KlimaticState extends State<Klimatic> {
     print(data.toString());
   }
 
+ String _cityEntered;
+  Future _goToNextScreen(BuildContext context) async {
+    Map results = await Navigator.of(context).push(
+      new MaterialPageRoute<Map>(builder:(BuildContext context){
+      return new ChangeCity();
+      })
+    );
+    if(results != null && results.containsKey("enter")){
+      _cityEntered = results['enter'];
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +39,7 @@ class _KlimaticState extends State<Klimatic> {
         actions: <Widget>[
           new IconButton(
               icon: new Icon(Icons.menu),
-              onPressed: showStuff,
+              onPressed:() {_goToNextScreen(context);},
           ),
         ],
       ),
@@ -40,7 +52,7 @@ class _KlimaticState extends State<Klimatic> {
           new Container(
             alignment: Alignment.topRight,
             margin: const EdgeInsets.fromLTRB(0.0, 10.9, 20.9, 0.0),
-            child: new Text('Spokane',
+            child: new Text('${_cityEntered == null ?util.defaultCity:_cityEntered}',
             style: cityStyle() ,
             ),
           ),
@@ -51,7 +63,7 @@ class _KlimaticState extends State<Klimatic> {
           //Weather data
           new Container(
             margin: const EdgeInsets.fromLTRB(30.0, 330.0, 0.0, 0.0),
-            child: updateTempWidget("delhi"),
+            child: updateTempWidget(_cityEntered),
           ),
 
         ],
@@ -59,7 +71,7 @@ class _KlimaticState extends State<Klimatic> {
     );
   }
   Future<Map> getWeather(String appId, String city) async{
-     String apiUrl = "http://api.openweathermap.org/data/2.5/weather?q=$city&&appid=${util.apiID}&units=imperial";
+     String apiUrl = "http://api.openweathermap.org/data/2.5/weather?q=$city&&appid=${util.apiID}&units=metric";
      http.Response response = await http.get(apiUrl);
      return json.decode(response.body);
 
@@ -67,7 +79,7 @@ class _KlimaticState extends State<Klimatic> {
 
   Widget updateTempWidget(String city){
     return new FutureBuilder(
-      future: getWeather(util.apiID,city ),
+      future: getWeather(util.apiID,city == null ? util.defaultCity:city ),
         builder: (BuildContext context,AsyncSnapshot<Map> snapshot ){
             if(snapshot.hasData){
               Map content = snapshot.data;
@@ -75,7 +87,7 @@ class _KlimaticState extends State<Klimatic> {
                 child: new Column(
                   children: <Widget>[
                     new ListTile(
-                      title: new Text(content['main']['temp'].toString(),style:weather() ,),
+                      title: new Text(content['main']['temp'].toString()+"°C",style:weather() ,),
                     ),
                   ],
                 ),
@@ -89,6 +101,57 @@ class _KlimaticState extends State<Klimatic> {
 
 
 
+class ChangeCity extends StatelessWidget {
+
+  var _cityFieldController = new TextEditingController();
+
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: new AppBar(
+        backgroundColor: Colors.red,
+        title: new Text('Change City'),
+        centerTitle: true,
+      ),
+      body: new Stack(
+        children: <Widget>[
+          new Center(
+            child: new Image.asset('images/white_snow.png',
+            width: 490.0,
+            height: 1000.0,
+              fit: BoxFit.fill,
+            ),
+          ),
+          new ListView(
+            children: <Widget>[
+              new ListTile(
+                title:  new TextField(
+                  decoration: new InputDecoration(
+                    hintText: "Enter City",
+                  ),
+                  controller: _cityFieldController,
+                  keyboardType: TextInputType.text,
+                ),
+              ),
+              new ListTile(
+                title: new FlatButton(
+                    onPressed: (){
+                      Navigator.pop(context,{
+                        "enter":_cityFieldController.text
+                      });
+                    },
+                    textColor: Colors.white70,
+                    color:  Colors.redAccent,
+                    child: new Text('Get Weather')),
+              )
+            ],
+          )
+        ],
+      ),
+    );
+  }
+}
 
 
 
