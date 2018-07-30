@@ -1,8 +1,4 @@
-# klimatic
+Klimatic
 
-A new Flutter application.
-
-## Getting Started
-
-For help getting started with Flutter, view our online
-[documentation](https://flutter.io/).
+Get the real time weather using this flutter application.
+Just add in any place and the weather will be updated.
